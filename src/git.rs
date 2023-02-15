@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 use std::{process::Command, path::PathBuf};
-use anyhow::Result;
+use anyhow::{Result, Ok};
 
 pub struct Git {
     git_path: PathBuf,
@@ -34,18 +34,41 @@ impl Git {
         }
     }
 
-    pub fn branch(&self) -> Result<Vec<String>> {
+    pub fn branch(&self, exclude_self: bool) -> Result<Vec<String>> {
         let mut br_list = Vec::<String>::new();
         let output = self.git(&["branch"])?;
 
         for line in output.lines() {
             let line = line.trim();
-            if !line.starts_with('*') {
-                br_list.push(String::from(line));
+            if exclude_self && line.starts_with('*') {
+                continue;
             }
+            br_list.push(String::from(line));
         }
 
         Ok(br_list)
+    }
+
+    pub fn branch_aa(&self, exclude_self: bool) -> Result<Vec<String>> {
+        let mut br_list = Vec::<String>::new();
+        let output = self.git(&["branch", "-aa"])?;
+
+        for line in output.lines() {
+            let line = line.trim();
+            if exclude_self && line.starts_with('*') {
+                continue;
+            }
+            br_list.push(String::from(line));
+        }
+
+        Ok(br_list)
+    }
+
+    pub fn delete_branch(&self, branch_list: &[&str]) -> Result<()> {
+        let branches = branch_list.join(" ");
+        self.git(&["branch", "-D", branches.as_str()])?;
+
+        Ok(())
     }
     
     pub fn status(&self) -> Result<String> {
