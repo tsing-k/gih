@@ -70,6 +70,11 @@ impl Git {
 
         Ok(())
     }
+
+    pub fn pull_branch(&self, branch: &str) -> Result<()> {
+        self.git(&["checkout", branch])?;
+        Ok(())
+    }
     
     pub fn status(&self) -> Result<String> {
         self.git(&["status"])
