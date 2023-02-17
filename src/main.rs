@@ -1,42 +1,12 @@
 mod git;
-use clap::{Parser, Subcommand, ArgGroup};
+mod cli;
+
+use clap::Parser;
+use dialoguer::FuzzySelect;
 use git::Git;
-
-#[derive(Debug, Parser)]
-#[command(name = "gih")]
-#[command(about = "git tool", long_about = None)]
-struct Cli {
-    #[command(subcommand)]
-    command: Commands,
-}
-
-#[derive(Debug, Subcommand)]
-enum Commands {
-    /// git branch
-    #[command(group(
-        ArgGroup::new("branch")
-            .required(true)
-            .args(["a", "d"]),
-    ))]
-    Br{
-        /// list all remote branch
-        #[arg(short = 'a', action = clap::ArgAction::Count)]
-        a: u8,
-
-        /// delete branch
-        #[arg(short = 'D')]
-        d: Option<String>,
-    },
-
-    /// git checkout
-    Co{
-        /// branch checkout
-        branch: String,
-    }
-}
+use cli::{Cli, Commands};
 
 fn main() {
-    // let git = Git::default();
     let args = Cli::parse();
     println!("{args:#?}");
     let git = Git::default();
@@ -51,12 +21,43 @@ fn main() {
                         }
                     },
                     Err(error) => println!("{error}"),
-                }               
+                }
             } else if let Some(_branch) = d {
                 
             }
         },
         Commands::Co { branch } => {
+            if let Some(branch) = branch {
+                println!("checkout {branch}");
+            } else {
+                match git.branch_aa(true) {
+                    Ok(branch_list) => {
+                        let fuzzy_select = FuzzySelect::new()
+                            .items(branch_list.as_slice())
+                            .default(0)
+                            .interact_opt();
+                        match fuzzy_select {
+                            Ok(index) => {
+                                if let Some(index) = index {
+                                    let prefix = "remotes/origin/";
+                                    let mut start_index = 0;
+                                    if branch_list[index].starts_with(prefix) {
+                                        start_index = prefix.len();
+                                    }
+                                    let branch = &branch_list[index][start_index..];
+                                    if let Err(error) = git.pull_branch(branch) {
+                                        println!("{error}");
+                                    } else {
+                                        println!("checkout {branch} success");
+                                    }
+                                }
+                             },
+                            Err(error) => println!("{error}"),
+                        }
+                    },
+                    Err(error) => println!("{error}"),
+                }
+            }
         },
     }
 }
