@@ -49,7 +49,7 @@ impl Git {
         Ok(br_list)
     }
 
-    pub fn branch_aa(&self, exclude_self: bool) -> Result<Vec<String>> {
+    pub fn branch_a(&self, exclude_self: bool) -> Result<Vec<String>> {
         let mut br_list = Vec::<String>::new();
         let output = self.git(&["branch", "-aa"])?;
 
@@ -71,11 +71,11 @@ impl Git {
         Ok(())
     }
 
-    pub fn pull_branch(&self, branch: &str) -> Result<()> {
+    pub fn checkout(&self, branch: &str) -> Result<()> {
         self.git(&["checkout", branch])?;
         Ok(())
     }
-    
+
     pub fn status(&self) -> Result<String> {
         self.git(&["status"])
     }

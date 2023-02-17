@@ -18,7 +18,7 @@ pub enum Commands {
         a: u8,
 
         /// delete branch
-        #[arg(short = 'D')]
+        #[arg(short = 'd')]
         d: Option<String>,
     },
 
